@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
+using RGBDCapturer;
 
 namespace HoloToolkit.Unity.SpatialMapping
 {
@@ -201,6 +202,30 @@ namespace HoloToolkit.Unity.SpatialMapping
             }
         }
 
+        public void ToggleSurfaceMaterial(ViewModeEnum mode)
+        {
+            Material m;
+            if (mode.Equals(ViewModeEnum.WireframeView))
+            {
+                //m = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
+                m = Resources.Load<Material>("Wireframe");
+            }
+            else
+            {
+                //m = (Material)Resources.Load("Default-Diffuse", typeof(Material));
+                m = Resources.Load<Material>("defaultMat");
+            }
+
+            if (m != null)
+            {
+                Debug.Log(string.Format("Material: {0}", m.name));
+                SetSurfaceMaterial(m);
+            }
+            else { Debug.Log("Cannot find material for meshes"); }
+
+        }
+
+
         /// <summary>
         /// Checks to see if the SurfaceObserver is currently running.
         /// </summary>
@@ -374,7 +399,7 @@ namespace HoloToolkit.Unity.SpatialMapping
         }
 
 
-        
+
 
 
         public bool isSurfaceNearCamera(Bounds bounds, float radius = 0.3F)
@@ -387,6 +412,6 @@ namespace HoloToolkit.Unity.SpatialMapping
             return distance < radius;
         }
 
-        
+
     }
 }

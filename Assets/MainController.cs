@@ -8,38 +8,38 @@ namespace RGBDCapturer
     public class MainController : Singleton<MainController>
     {
 
-//        [SerializeField]
-//        private ViewModeEnum _viewMode;
-//        //[Tooltip("Type of the animation parameter to modify.")]
-//        public ViewModeEnum ViewMode
-//        {
-//            get { return _viewMode; }
-//            set
-//            {
-//                _viewMode = value;
-//                var spatialMappingManager = HoloToolkit.Unity.SpatialMapping.SpatialMappingManager.Instance;
-//                //var //spatialMappingPrefab = GameObject.FindGameObjectWithTag("SpatialMapping");
+        [SerializeField]
+        private ViewModeEnum _viewMode;
+        //[Tooltip("Type of the animation parameter to modify.")]
+        public ViewModeEnum ViewMode
+        {
+            get { return _viewMode; }
+            set
+            {
+                _viewMode = value;
+                var spatialMappingManager = HoloToolkit.Unity.SpatialMapping.SpatialMappingManager.Instance;
+                //var //spatialMappingPrefab = GameObject.FindGameObjectWithTag("SpatialMapping");
 
-//                if (value == ViewModeEnum.SaveRGBAndDepthButNoView)
-//                {
-//#if UNITY_WSA && !UNITY_EDITOR
-//                    PhotoCaptureController.Instance.createPhotoCapture();
-//                    //spatialMappingPrefab.layer = 8;
-//#endif
+                if (value == ViewModeEnum.SaveRGBAndDepthButNoView)
+                {
+#if UNITY_WSA && !UNITY_EDITOR
+                            //PhotoCaptureController.Instance.createPhotoCapture();
+                            //spatialMappingPrefab.layer = 8;
+#endif
 
-//                    Debug.Log("Toggle to SaveRGB!");
-//                }
-//                else
-//                {
-//#if UNITY_WSA && !UNITY_EDITOR
-//                    PhotoCaptureController.Instance.stopPhotoCapture();
-//                    //spatialMappingPrefab.layer = 0;
-//#endif
-//                    Debug.Log("Toggle to wireframe");
-//                }
-//                spatialMappingManager.ToggleSurfaceMaterial(ViewMode);
-//            }
-//        }
+                    Debug.Log("Toggle to SaveRGB!");
+                }
+                else
+                {
+#if UNITY_WSA && !UNITY_EDITOR
+                            //PhotoCaptureController.Instance.stopPhotoCapture();
+                            //spatialMappingPrefab.layer = 0;
+#endif
+                    Debug.Log("Toggle to wireframe");
+                }
+                spatialMappingManager.ToggleSurfaceMaterial(ViewMode);
+            }
+        }
 
         private static int frameIndexBetweenRGBAndZBufferCapture = 0;
 
