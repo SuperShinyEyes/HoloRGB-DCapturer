@@ -27,10 +27,12 @@ public class KeywordRecognizeController : MonoBehaviour {
     /// </summary>
     [SerializeField]
     public KeyCode RemoteMappingKey = KeyCode.T;
+    public KeyCode ToggleGraphicsKey = KeyCode.G;
 
     [Tooltip("Keyword for toggling viewing options")]
     [SerializeField]
     public string ToggleKeyword = "Change material";
+    public string ToggleGraphicsKeyword = "Toggle graphics";
 
     /// <summary>
     /// Collection of supported keywords and their associated actions.
@@ -68,9 +70,13 @@ public class KeywordRecognizeController : MonoBehaviour {
         {
             ToggleViewingOptions();
         }
+        else if (Input.GetKeyUp(ToggleGraphicsKey))
+        {
+            ToggleGraphics();
+        }
 #endif
 
-    }
+        }
 
     private void SetSpeechRecognizer()
     {
@@ -78,6 +84,7 @@ public class KeywordRecognizeController : MonoBehaviour {
         // Create our keyword collection.
         keywordCollection = new Dictionary<string, System.Action>();
         keywordCollection.Add(ToggleKeyword, () => ToggleViewingOptions());
+        keywordCollection.Add(ToggleGraphicsKeyword , () => ToggleGraphics());
 
         // Tell the KeywordRecognizer about our keywords.
         keywordRecognizer = new KeywordRecognizer(keywordCollection.Keys.ToArray());
@@ -86,6 +93,20 @@ public class KeywordRecognizeController : MonoBehaviour {
         keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
         keywordRecognizer.Start();
 
+    }
+
+    /// <summary>
+    /// Switch between situation checking and recording modes
+    /// </summary>
+    private void ToggleGraphics()
+    {
+        if(MainController.Instance.PlayMode.Equals(PlayModeEnum.ObservationMode))
+        {
+            MainController.Instance.PlayMode = PlayModeEnum.RecordMode;
+        } else
+        {
+            MainController.Instance.PlayMode = PlayModeEnum.ObservationMode;
+        }
     }
 
     private void ToggleViewingOptions()

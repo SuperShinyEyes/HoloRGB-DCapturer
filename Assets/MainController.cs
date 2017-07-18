@@ -8,6 +8,29 @@ namespace RGBDCapturer
     public class MainController : Singleton<MainController>
     {
 
+        private PlayModeEnum _playMode = PlayModeEnum.ObservationMode;
+        public PlayModeEnum PlayMode
+        {
+            get { return _playMode;  }
+            set
+            {
+                _playMode = value;
+
+                var spatialMapping = GameObject.FindGameObjectWithTag("SpatialMapping");
+                var cam = GetComponent<Camera>();
+
+                if (value.Equals(PlayModeEnum.RecordMode))
+                {
+                    cam.cullingMask = ~(1 << 8);
+                    //spatialMapping.layer = 8;
+                } else
+                {
+                    cam.cullingMask |= (1 << 8);
+                    //spatialMapping.layer = 0;
+                }
+            }
+        }
+
         [SerializeField]
         private ViewModeEnum _viewMode;
         //[Tooltip("Type of the animation parameter to modify.")]

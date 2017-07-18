@@ -171,6 +171,7 @@ namespace HoloToolkit.Unity.SpatialMapping
                     if (observer.RequestMeshAsync(surfaceData, SurfaceObserver_OnDataReady))
                     {
                         SetRandomMeshColor(newSurface);
+                        newSurface.Object.layer = 8;
                         outstandingMeshRequest = newSurface;
                     }
                     else

@@ -5,6 +5,16 @@ using UnityEngine;
 
 namespace RGBDCapturer
 {
+
+    public enum PlayModeEnum
+    {
+        RecordMode,
+        ObservationMode
+    }
+
+    /// <summary>
+    /// Enum for wireframe mesh materials
+    /// </summary>
     public enum ViewModeEnum
     {
         WireframeView,

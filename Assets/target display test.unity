@@ -331,7 +331,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RemoteMappingKey: 116
+  ToggleGraphicsKey: 103
   ToggleKeyword: Change material
+  ToggleGraphicsKeyword: Toggle graphics
+--- !u!84 &922531416
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_Width: 1480
+  m_Height: 560
+  m_AntiAliasing: 1
+  m_DepthFormat: 2
+  m_ColorFormat: 0
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapMode: 1
 --- !u!1 &1234552900
 GameObject:
   m_ObjectHideFlags: 0
@@ -434,31 +458,17 @@ Prefab:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1000010302963436, guid: 2ed75ffdf9031c94e8bce4b3d17b9928, type: 2}
+      propertyPath: m_TagString
+      value: SpatialMapping
+      objectReference: {fileID: 0}
+    - target: {fileID: 1000010302963436, guid: 2ed75ffdf9031c94e8bce4b3d17b9928, type: 2}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 2ed75ffdf9031c94e8bce4b3d17b9928, type: 2}
   m_IsPrefabParent: 0
---- !u!84 &1822047143
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_Width: 1480
-  m_Height: 560
-  m_AntiAliasing: 1
-  m_DepthFormat: 2
-  m_ColorFormat: 0
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_TextureSettings:
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapMode: 1
 --- !u!1 &1900786817
 GameObject:
   m_ObjectHideFlags: 0
@@ -504,7 +514,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   depthLevel: 0.5
   quad: {fileID: 412316364}
-  tex: {fileID: 1822047143}
+  tex: {fileID: 922531416}
   shader: {fileID: 4800000, guid: 8e4c7f7efafb8b0408af8643a8c53f67, type: 3}
 --- !u!92 &1900786820
 Behaviour:
@@ -546,7 +556,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 1822047143}
+  m_TargetTexture: {fileID: 922531416}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
