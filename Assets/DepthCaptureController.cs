@@ -48,7 +48,7 @@ public class DepthCaptureController : MonoBehaviour
         /// Prepare for depthbuffer capturing
         /// </summary>
         cam = GetComponent<Camera>();
-        //tex = new RenderTexture(Camera.main.pixelWidth, Camera.main.pixelHeight, 32);
+        tex = new RenderTexture(Camera.main.pixelWidth, Camera.main.pixelHeight, 32);
         //Debug.Log(string.Format("{0} x {1}", Camera.main.pixelWidth, Camera.main.pixelHeight));
         //tex = new RenderTexture(720, 504, 32);
 
@@ -58,8 +58,8 @@ public class DepthCaptureController : MonoBehaviour
         /// object and setting it as targetTexture on the camera. The camera will then render 
         /// into that texture.
         /// </summary>
-        //cam.targetTexture = tex;
-        cam.SetTargetBuffers(tex.colorBuffer, tex.depthBuffer);
+        cam.targetTexture = tex;
+        //cam.SetTargetBuffers(tex.colorBuffer, tex.depthBuffer);
         if (!SystemInfo.supportsImageEffects)
         {
             print("System doesn't support image effects");
@@ -81,10 +81,10 @@ public class DepthCaptureController : MonoBehaviour
         /// </summary>
         if (isTestMode)
         {
-            //DisplayAspectRatioControl darc;
-            //darc = quad.GetComponent<DisplayAspectRatioControl>();
-            //Texture2D t = new Texture2D(tex.width, tex.height, TextureFormat.ARGB32, false);
-            //darc.SetDisplay(t);
+            DisplayAspectRatioControl darc;
+            darc = quad.GetComponent<DisplayAspectRatioControl>();
+            Texture2D t = new Texture2D(tex.width, tex.height, TextureFormat.ARGB32, false);
+            darc.SetDisplay(t);
         }
         else
         {
