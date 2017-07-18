@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 32280236}
   - component: {fileID: 32280235}
   - component: {fileID: 32280240}
+  - component: {fileID: 32280241}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -194,6 +195,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _viewMode: 0
+--- !u!114 &32280241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 32280234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88e6d0de63c7b724d95e3425057fc5fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &412316364
 GameObject:
   m_ObjectHideFlags: 0
@@ -220,8 +232,8 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 412316364}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 0.5, z: 10}
-  m_LocalScale: {x: 1, y: 0.3783784, z: 1}
+  m_LocalPosition: {x: 0.25, y: 0.15, z: 2}
+  m_LocalScale: {x: 0.3, y: 0.11351352, z: 0.3}
   m_Children: []
   m_Father: {fileID: 32280239}
   m_RootOrder: 1
@@ -289,7 +301,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb7f9ae4740a127409e38676fdd74669, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scale: 1
+  scale: 0.3
 --- !u!1 &775037416
 GameObject:
   m_ObjectHideFlags: 0
@@ -334,28 +346,6 @@ MonoBehaviour:
   ToggleGraphicsKey: 103
   ToggleKeyword: Change material
   ToggleGraphicsKeyword: Toggle graphics
---- !u!84 &922531416
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_Width: 1480
-  m_Height: 560
-  m_AntiAliasing: 1
-  m_DepthFormat: 2
-  m_ColorFormat: 0
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_TextureSettings:
-    m_FilterMode: 1
-    m_Aniso: 0
-    m_MipBias: 0
-    m_WrapMode: 1
 --- !u!1 &1234552900
 GameObject:
   m_ObjectHideFlags: 0
@@ -466,9 +456,35 @@ Prefab:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 1000010302963436, guid: 2ed75ffdf9031c94e8bce4b3d17b9928, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 2ed75ffdf9031c94e8bce4b3d17b9928, type: 2}
   m_IsPrefabParent: 0
+--- !u!84 &1693476067
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_Width: 1480
+  m_Height: 560
+  m_AntiAliasing: 1
+  m_DepthFormat: 2
+  m_ColorFormat: 0
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_TextureSettings:
+    m_FilterMode: 1
+    m_Aniso: 0
+    m_MipBias: 0
+    m_WrapMode: 1
 --- !u!1 &1900786817
 GameObject:
   m_ObjectHideFlags: 0
@@ -514,7 +530,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   depthLevel: 0.5
   quad: {fileID: 412316364}
-  tex: {fileID: 922531416}
+  tex: {fileID: 1693476067}
   shader: {fileID: 4800000, guid: 8e4c7f7efafb8b0408af8643a8c53f67, type: 3}
 --- !u!92 &1900786820
 Behaviour:
@@ -556,7 +572,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 922531416}
+  m_TargetTexture: {fileID: 1693476067}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0

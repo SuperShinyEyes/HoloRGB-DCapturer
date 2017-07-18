@@ -18,15 +18,16 @@ namespace RGBDCapturer
 
                 var spatialMapping = GameObject.FindGameObjectWithTag("SpatialMapping");
                 var cam = GetComponent<Camera>();
+                frameIndex = 1;
 
                 if (value.Equals(PlayModeEnum.RecordMode))
                 {
                     cam.cullingMask = ~(1 << 8);
-                    //spatialMapping.layer = 8;
+                    PhotoCaptureController.Instance.createPhotoCapture();
                 } else
                 {
                     cam.cullingMask |= (1 << 8);
-                    //spatialMapping.layer = 0;
+                    PhotoCaptureController.Instance.stopPhotoCapture();
                 }
             }
         }
@@ -64,7 +65,11 @@ namespace RGBDCapturer
             }
         }
 
+        public static int CaptureIntervalInNumOfFrames = 20;
+
         private static int frameIndexBetweenRGBAndZBufferCapture = 0;
+
+        internal int frameIndex = 0;
 
         private static bool _isCapturing = false;
         public static bool isCapturing
@@ -92,7 +97,7 @@ namespace RGBDCapturer
         void Update()
         {
             //UpdateFPS();
-
+            frameIndex++;
         }
 
         /// <summary>
@@ -136,6 +141,9 @@ namespace RGBDCapturer
             }
         }
 
-
+        internal bool isTimeToCapture
+        {
+            get { return frameIndex % CaptureIntervalInNumOfFrames == 0; }
+        }
     }
 }
