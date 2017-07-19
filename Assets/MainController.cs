@@ -41,7 +41,7 @@ namespace RGBDCapturer
             set
             {
                 _viewMode = value;
-                var spatialMappingManager = HoloToolkit.Unity.SpatialMapping.SpatialMappingManager.Instance;
+                //var spatialMappingManager = HoloToolkit.Unity.SpatialMapping.SpatialMappingManager.Instance;
                 //var //spatialMappingPrefab = GameObject.FindGameObjectWithTag("SpatialMapping");
 
                 if (value == ViewModeEnum.SaveRGBAndDepthButNoView)
@@ -61,7 +61,8 @@ namespace RGBDCapturer
 #endif
                     Debug.Log("Toggle to wireframe");
                 }
-                spatialMappingManager.ToggleSurfaceMaterial(ViewMode);
+                HoloToolkit.Unity.SpatialMapping.SpatialMappingHelper.ToggleSurfaceMaterial(ViewMode);
+                //spatialMappingManager.ToggleSurfaceMaterial(ViewMode);
             }
         }
 

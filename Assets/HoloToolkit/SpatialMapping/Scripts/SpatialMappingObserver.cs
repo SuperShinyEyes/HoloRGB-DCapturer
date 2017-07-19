@@ -249,6 +249,8 @@ namespace HoloToolkit.Unity.SpatialMapping
 
                     if (observer.RequestMeshAsync(surfaceData, SurfaceObserver_OnDataReady))
                     {
+                        SetRandomMeshColor(newSurface);
+                        newSurface.Object.layer = 8;
                         outstandingMeshRequest = newSurface;
                     }
                     else
@@ -307,6 +309,14 @@ namespace HoloToolkit.Unity.SpatialMapping
                 updateTime = 0;
             }
 #endif
+        }
+
+        private void SetRandomMeshColor(SurfaceObject surface)
+        {
+            //  _WireColor("Wire color", Color) = (1.0, 1.0, 1.0, 1.0)
+            // Pick a random, saturated and not-too-dark color
+            var randomColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+            surface.Renderer.material.SetColor("_WireColor", randomColor);
         }
 
         /// <summary>

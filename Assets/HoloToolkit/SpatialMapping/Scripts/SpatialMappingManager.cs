@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using RGBDCapturer;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
+using RGBDCapturer;
 
 namespace HoloToolkit.Unity.SpatialMapping
 {
@@ -330,27 +330,27 @@ namespace HoloToolkit.Unity.SpatialMapping
             }
         }
 
-        public void ToggleSurfaceMaterial(ViewModeEnum mode)
-        {
-            Material m;
-            if (mode.Equals(ViewModeEnum.WireframeView))
-            {
-                //m = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
-                m = Resources.Load<Material>("Wireframe");
-            }
-            else
-            {
-                //m = (Material)Resources.Load("Default-Diffuse", typeof(Material));
-                m = Resources.Load<Material>("defaultMat");
-            }
+        //public void ToggleSurfaceMaterial(ViewModeEnum mode)
+        //{
+        //    Material m;
+        //    if (mode.Equals(ViewModeEnum.WireframeView))
+        //    {
+        //        //m = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
+        //        m = Resources.Load<Material>("Wireframe");
+        //    }
+        //    else
+        //    {
+        //        //m = (Material)Resources.Load("Default-Diffuse", typeof(Material));
+        //        m = Resources.Load<Material>("defaultMat");
+        //    }
 
-            if (m != null)
-            {
-                Debug.Log(string.Format("Material: {0}", m.name));
-                SetSurfaceMaterial(m);
-            }
-            else { Debug.Log("Cannot find material for meshes"); }
+        //    if (m != null)
+        //    {
+        //        Debug.Log(string.Format("Material: {0}", m.name));
+        //        SetSurfaceMaterial(m);
+        //    }
+        //    else { Debug.Log("Cannot find material for meshes"); }
 
-        }
+        //}
     }
 }
