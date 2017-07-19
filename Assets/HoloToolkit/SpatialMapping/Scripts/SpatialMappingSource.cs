@@ -124,7 +124,6 @@ namespace HoloToolkit.Unity.SpatialMapping
         /// <param name="toAdd">The surface to add.</param>
         protected void AddSurfaceObject(SurfaceObject toAdd)
         {
-            Debug.Log("Add new surface obj.");
             surfaceObjectsWriteable.Add(toAdd);
 
             var handlers = SurfaceAdded;
@@ -193,7 +192,7 @@ namespace HoloToolkit.Unity.SpatialMapping
             SurfaceObject? removed = null;
 
             for (int iSurface = 0; iSurface < surfaceObjectsWriteable.Count; iSurface++)
-            {   
+            {
                 SurfaceObject surface = surfaceObjectsWriteable[iSurface];
 
                 if (surface.ID == surfaceID)
@@ -284,64 +283,9 @@ namespace HoloToolkit.Unity.SpatialMapping
             for (int index = 0; index < surfaceObjectsWriteable.Count; index++)
             {
                 CleanUpSurface(surfaceObjectsWriteable[index], destroyGameObjects, destroyMeshes);
-                
             }
             surfaceObjectsWriteable.Clear();
         }
-
-
-        public void updateObsoleteSurfaceIds()
-        {
-            for (int index = 0; index < surfaceObjectsWriteable.Count; index++)
-            {
-                SpatialMappingManager.Instance.obsoleteSurfaceIds.Add(surfaceObjectsWriteable[index].ID);
-            }
-
-               
-        }
-
-        /// <summary>
-        /// Cleans up references to objects that we have created.
-        /// </summary>
-        /// <param name="destroyGameObjects">True to destroy the game objects of each surface, false otherwise.</param>
-        /// <param name="destroyMeshes">True to destroy the meshes of each surface, false otherwise.</param>
-        protected void CleanupFarAfterSend(bool destroyGameObjects = true, bool destroyMeshes = true)
-        {
-            
-            var handlers = SurfaceRemoved;
-            
-            //var handlers = RemovingAllSurfaces;
-            //if (handlers != null)
-            //{
-            //    handlers(this, EventArgs.Empty);
-            //}
-
-            var count = surfaceObjectsWriteable.Count;
-            var i = 0;
-            //Helper.debug(System.String.Format("CLEAN {0} surfaces", surfaceObjectsWriteable.Count));
-            for (int index = 0; index < surfaceObjectsWriteable.Count; index++)
-            {
-                Helper.debug(System.String.Format("Cleaning {0}th/{1} surface", index, count));
-                SurfaceObject surface = surfaceObjectsWriteable[index];
-                if (SpatialMappingManager.Instance.isSurfaceNearCamera(surface.Filter.sharedMesh.bounds))
-                {
-                    continue;
-                }
-                if (handlers != null)
-                {
-                    handlers(this, DataEventArgs.Create(surface));
-                }
-                CleanUpSurface(surface, destroyGameObjects, destroyMeshes);
-                surfaceObjectsWriteable.RemoveAt(index);
-                i++;
-            }
-            Helper.debug(System.String.Format("CLEANED {0} surfaces out of {1}", i, count));
-
-            //surfaceObjectsWriteable.Clear();
-            /// Remove deleted
-            //surfaceObjectsWriteable.RemoveRange(0, count);
-        }
-
 
         /// <summary>
         /// Gets all mesh filters that have a valid mesh.
@@ -361,34 +305,6 @@ namespace HoloToolkit.Unity.SpatialMapping
                 }
             }
 
-            return meshFilters;
-        }
-
-        /// <summary>
-        /// Gets all mesh filters that have a valid mesh.
-        /// </summary>
-        /// <returns>A list of filters, each with a mesh containing at least one triangle.</returns>
-        public virtual List<MeshFilter> GetUnsentMeshFilters()
-        {
-            List<MeshFilter> meshFilters = new List<MeshFilter>();
-            var log = "Sending meshe IDs: ";
-            for (int index = 0; index < surfaceObjectsWriteable.Count; index++)
-            {
-                var id = surfaceObjectsWriteable[index].ID;
-                if (SpatialMappingManager.Instance.obsoleteSurfaceIds.Contains(id))
-                {
-                    continue;
-                }
-                if (surfaceObjectsWriteable[index].Filter != null &&
-                    surfaceObjectsWriteable[index].Filter.sharedMesh != null &&
-                    surfaceObjectsWriteable[index].Filter.sharedMesh.vertexCount > 2)
-                {
-                    meshFilters.Add(surfaceObjectsWriteable[index].Filter);
-                    SpatialMappingManager.Instance.obsoleteSurfaceIds.Add(id);
-                    log += System.String.Format(" {0},", id);
-                }
-            }
-            Helper.debug(log);
             return meshFilters;
         }
 

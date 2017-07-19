@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using RGBDCapturer;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using RGBDCapturer;
 
 namespace HoloToolkit.Unity.SpatialMapping
 {
@@ -37,8 +37,6 @@ namespace HoloToolkit.Unity.SpatialMapping
         [SerializeField]
         private bool castShadows = false;
 
-        public List<int> obsoleteSurfaceIds = new List<int>();
-
         /// <summary>
         /// Used for gathering real-time Spatial Mapping data on the HoloLens.
         /// </summary>
@@ -49,6 +47,11 @@ namespace HoloToolkit.Unity.SpatialMapping
         /// </summary>
         [HideInInspector]
         public float StartTime { get; private set; }
+
+        /// <summary>
+        /// SurfaceMappingObserver GET
+        /// </summary>
+        public SpatialMappingObserver SurfaceObserver { get { return surfaceObserver; } }
 
         /// <summary>
         /// The current source of spatial mapping data.
@@ -92,17 +95,9 @@ namespace HoloToolkit.Unity.SpatialMapping
             Source = surfaceObserver;
         }
 
-        void OnRenderImage(RenderTexture source, RenderTexture destination)
-        {
-            Graphics.Blit(source, destination, SurfaceMaterial);
-            //mat is the material which contains the shader
-            //we are passing the destination RenderTexture to
-        }
-
         // Use for initialization.
         private void Start()
         {
-            Camera.main.depthTextureMode = DepthTextureMode.Depth;
             if (autoStartObserver)
             {
                 StartObserver();
@@ -202,30 +197,6 @@ namespace HoloToolkit.Unity.SpatialMapping
             }
         }
 
-        public void ToggleSurfaceMaterial(ViewModeEnum mode)
-        {
-            Material m;
-            if (mode.Equals(ViewModeEnum.WireframeView))
-            {
-                //m = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
-                m = Resources.Load<Material>("Wireframe");
-            }
-            else
-            {
-                //m = (Material)Resources.Load("Default-Diffuse", typeof(Material));
-                m = Resources.Load<Material>("defaultMat");
-            }
-
-            if (m != null)
-            {
-                Debug.Log(string.Format("Material: {0}", m.name));
-                SetSurfaceMaterial(m);
-            }
-            else { Debug.Log("Cannot find material for meshes"); }
-
-        }
-
-
         /// <summary>
         /// Checks to see if the SurfaceObserver is currently running.
         /// </summary>
@@ -275,15 +246,6 @@ namespace HoloToolkit.Unity.SpatialMapping
         }
 
         /// <summary>
-        /// Instructs the SurfaceObserver to stop and cleanup all meshes.
-        /// </summary>
-        public void Cleanup()
-        {
-            //surfaceObserver.CleanupAllAfterSend();
-            surfaceObserver.UpdateObserver();
-        }
-
-        /// <summary>
         /// Gets all meshes that are associated with the SpatialMapping mesh.
         /// </summary>
         /// <returns>
@@ -293,27 +255,6 @@ namespace HoloToolkit.Unity.SpatialMapping
         {
             List<Mesh> meshes = new List<Mesh>();
             List<MeshFilter> meshFilters = GetMeshFilters();
-
-            // Get all valid mesh filters for observed surfaces.
-            for (int i = 0; i < meshFilters.Count; i++)
-            {
-                // GetMeshFilters ensures that both filter and filter.sharedMesh are not null.
-                meshes.Add(meshFilters[i].sharedMesh);
-            }
-
-            return meshes;
-        }
-
-        /// <summary>
-        /// Gets all meshes that are associated with the SpatialMapping mesh.
-        /// </summary>
-        /// <returns>
-        /// Collection of Mesh objects representing the SpatialMapping mesh.
-        /// </returns>
-        public List<Mesh> GetUnsentMeshes()
-        {
-            List<Mesh> meshes = new List<Mesh>();
-            List<MeshFilter> meshFilters = GetUnsentMeshFilters();
 
             // Get all valid mesh filters for observed surfaces.
             for (int i = 0; i < meshFilters.Count; i++)
@@ -341,15 +282,6 @@ namespace HoloToolkit.Unity.SpatialMapping
         public List<MeshFilter> GetMeshFilters()
         {
             return Source.GetMeshFilters();
-        }
-
-        /// <summary>
-        /// Gets all Mesh Filter objects associated with the Spatial Mapping mesh.
-        /// </summary>
-        /// <returns>Collection of Mesh Filter objects.</returns>
-        public List<MeshFilter> GetUnsentMeshFilters()
-        {
-            return Source.GetUnsentMeshFilters();
         }
 
         /// <summary>
@@ -398,20 +330,27 @@ namespace HoloToolkit.Unity.SpatialMapping
             }
         }
 
-
-
-
-
-        public bool isSurfaceNearCamera(Bounds bounds, float radius = 0.3F)
+        public void ToggleSurfaceMaterial(ViewModeEnum mode)
         {
-            //var distance = Vector3.Distance(bounds.center, Camera.main.transform.position);
-            var heading = bounds.center - Camera.main.transform.position;
-            var distance = heading.magnitude;
-            var msg = System.String.Format("Distance between mesh and camera: {0}m\nToo near? {1}", distance, distance < radius);
-            Helper.debug(msg, Helper.DebugType.Weird);
-            return distance < radius;
+            Material m;
+            if (mode.Equals(ViewModeEnum.WireframeView))
+            {
+                //m = (Material)Resources.Load("SpatialMappingWireframe", typeof(Material));
+                m = Resources.Load<Material>("Wireframe");
+            }
+            else
+            {
+                //m = (Material)Resources.Load("Default-Diffuse", typeof(Material));
+                m = Resources.Load<Material>("defaultMat");
+            }
+
+            if (m != null)
+            {
+                Debug.Log(string.Format("Material: {0}", m.name));
+                SetSurfaceMaterial(m);
+            }
+            else { Debug.Log("Cannot find material for meshes"); }
+
         }
-
-
     }
 }

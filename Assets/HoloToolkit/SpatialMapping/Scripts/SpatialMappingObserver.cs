@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+
+#if UNITY_EDITOR || UNITY_WSA
 using UnityEngine.VR.WSA;
+#endif
 
 namespace HoloToolkit.Unity.SpatialMapping
 {
@@ -25,32 +28,65 @@ namespace HoloToolkit.Unity.SpatialMapping
     }
 
     /// <summary>
+    /// Spatial Mapping Volume Type
+    /// </summary>
+    public enum ObserverVolumeTypes
+    {
+        /// <summary>
+        /// The observed volume is an axis aligned box.
+        /// </summary>
+        AxisAlignedBox = 0,
+
+        /// <summary>
+        /// The observed volume is an oriented box.
+        /// </summary>
+        OrientedBox = 1,
+
+        /// <summary>
+        /// The observed volume is a sphere.
+        /// </summary>
+        Sphere = 2
+    }
+
+    /// <summary>
     /// The SpatialMappingObserver class encapsulates the SurfaceObserver into an easy to use
     /// object that handles managing the observed surfaces and the rendering of surface geometry.
     /// </summary>
     public class SpatialMappingObserver : SpatialMappingSource
     {
         [Tooltip("The number of triangles to calculate per cubic meter.")]
-        public float TrianglesPerCubicMeter = 300f;
-
-        [Tooltip("The extents of the observation volume.")]
-        public Vector3 Extents = Vector3.one * 2.0f;
+        public float TrianglesPerCubicMeter = 500f;
 
         [Tooltip("How long to wait (in sec) between Spatial Mapping updates.")]
-        public float TimeBetweenUpdates = 1.5f;
-
-        [Tooltip("How long to wait (in sec) at the start of the app")]
-        public float TimeBeforeStartMapping = 5.0f;
-
-        public int surfaceAddCount = 0;
-        public int surfaceUpdateCount = 0;
-        public int surfaceRemoveCount = 0;
+        public float TimeBetweenUpdates = 3.5f;
 
         /// <summary>
         /// Indicates the current state of the Surface Observer.
         /// </summary>
         public ObserverStates ObserverState { get; private set; }
 
+        /// <summary>
+        /// Indicates the current type of the observed volume
+        /// </summary>
+        [SerializeField][Tooltip("The shape of the observation volume.")]
+        private ObserverVolumeTypes observerVolumeType = ObserverVolumeTypes.AxisAlignedBox;
+        public ObserverVolumeTypes ObserverVolumeType
+        {
+            get
+            {
+                return observerVolumeType;
+            }
+            set
+            {
+                if(observerVolumeType != value)
+                {
+                    observerVolumeType = value;
+                    SwitchObservedVolume();
+                }
+            }
+        }
+
+#if UNITY_EDITOR || UNITY_WSA
         /// <summary>
         /// Our Surface Observer object for generating/updating Spatial Mapping data.
         /// </summary>
@@ -60,6 +96,7 @@ namespace HoloToolkit.Unity.SpatialMapping
         /// A queue of surfaces that need their meshes created (or updated).
         /// </summary>
         private readonly Queue<SurfaceId> surfaceWorkQueue = new Queue<SurfaceId>();
+#endif
 
         /// <summary>
         /// To prevent too many meshes from being generated at the same time, we will
@@ -80,30 +117,78 @@ namespace HoloToolkit.Unity.SpatialMapping
         /// </summary>
         private float updateTime;
 
-        private float awakeTime;
+        [SerializeField][Tooltip("The extents of the observation volume.")]
+        private Vector3 extents = Vector3.one * 10.0f;
+        public Vector3 Extents
+        {
+            get
+            {
+                return extents;
+            }
+            set
+            {
+                if(extents != value)
+                {
+                    extents = value;
+                    SwitchObservedVolume();
+                }
+            }
+        }
+
+        /// <summary>
+        /// The origin of the observation volume.
+        /// </summary>
+        [SerializeField][Tooltip("The origin of the observation volume.")]
+        private Vector3 origin = Vector3.zero;
+        public Vector3 Origin
+        {
+            get
+            {
+                return origin;
+            }
+            set
+            {
+                if(origin != value)
+                {
+                    origin = value;
+                    SwitchObservedVolume();
+                }
+            }
+        }
+
+        /// <summary>
+        /// The direction of the observed volume, if an oriented box is choosen.
+        /// </summary>
+        [SerializeField][Tooltip("The direction of the observation volume.")]
+        private Quaternion orientation = Quaternion.identity;
+        public Quaternion Orientation
+        {
+            get
+            {
+                return orientation;
+            }
+            set
+            {
+                if(orientation != value)
+                {
+                    orientation = value;
+                    // Only needs to be changed if the corresponding mode is active.
+                    if(ObserverVolumeType == ObserverVolumeTypes.OrientedBox)
+                    {
+                        SwitchObservedVolume();
+                    }
+                }
+            }
+        }
 
         protected override void Awake()
         {
             base.Awake();
 
             ObserverState = ObserverStates.Stopped;
-
-            awakeTime = Time.unscaledTime;
         }
 
-        private bool IsReadyForStart()
-        {
-            return Time.unscaledTime - awakeTime > TimeBeforeStartMapping;
-        }
-
-        private void SetRandomMeshColor(SurfaceObject surface)
-        {
-            //  _WireColor("Wire color", Color) = (1.0, 1.0, 1.0, 1.0)
-            // Pick a random, saturated and not-too-dark color
-            var randomColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-            surface.Renderer.material.SetColor("_WireColor", randomColor);
-        }
-
+#if UNITY_EDITOR || UNITY_WSA
         /// <summary>
         /// Called once per frame.
         /// </summary>
@@ -111,24 +196,19 @@ namespace HoloToolkit.Unity.SpatialMapping
         {
             if ((ObserverState == ObserverStates.Running) && (outstandingMeshRequest == null))
             {
-                //if (!IsReadyForStart())
-                //{
-                //    surfaceWorkQueue.Clear();
-                //}
                 if (surfaceWorkQueue.Count > 0)
                 {
                     // We're using a simple first-in-first-out rule for requesting meshes, but a more sophisticated algorithm could prioritize
                     // the queue based on distance to the user or some other metric.
                     SurfaceId surfaceID = surfaceWorkQueue.Dequeue();
-                    
+
                     string surfaceName = ("Surface-" + surfaceID.handle);
 
                     SurfaceObject newSurface;
                     WorldAnchor worldAnchor;
-                    
+
                     if (spareSurfaceObject == null)
                     {
-                        Debug.Log(System.String.Format("Get new for surfaceId: {0}", surfaceID.handle));
                         newSurface = CreateSurfaceObject(
                             mesh: null,
                             objectName: surfaceName,
@@ -141,7 +221,6 @@ namespace HoloToolkit.Unity.SpatialMapping
                     }
                     else
                     {
-                        Debug.Log(System.String.Format("Get spare for surfaceId: {0}", surfaceID.handle));
                         newSurface = spareSurfaceObject.Value;
                         spareSurfaceObject = null;
 
@@ -167,11 +246,9 @@ namespace HoloToolkit.Unity.SpatialMapping
                         TrianglesPerCubicMeter,
                         _bakeCollider: true
                         );
-                    Debug.Log("observer.RequestMeshAsync(surfaceData, SurfaceObserver_OnDataReady)");
+
                     if (observer.RequestMeshAsync(surfaceData, SurfaceObserver_OnDataReady))
                     {
-                        SetRandomMeshColor(newSurface);
-                        newSurface.Object.layer = 8;
                         outstandingMeshRequest = newSurface;
                     }
                     else
@@ -184,24 +261,23 @@ namespace HoloToolkit.Unity.SpatialMapping
                 }
                 else if ((Time.unscaledTime - updateTime) >= TimeBetweenUpdates)
                 {
-                    Debug.Log("observer.Update(SurfaceObserver_OnSurfaceChanged);");
                     observer.Update(SurfaceObserver_OnSurfaceChanged);
                     updateTime = Time.unscaledTime;
                 }
             }
         }
+#endif
 
         /// <summary>
         /// Starts the Surface Observer.
         /// </summary>
         public void StartObserving()
         {
+#if UNITY_EDITOR || UNITY_WSA
             if (observer == null)
             {
                 observer = new SurfaceObserver();
-                //Vector3 sceneOrigin = Camera.main.transform.position;
-                //observer.SetVolumeAsAxisAlignedBox(sceneOrigin, Extents);
-                observer.SetVolumeAsAxisAlignedBox(Vector3.zero, Extents);
+                SwitchObservedVolume();
             }
 
             if (ObserverState != ObserverStates.Running)
@@ -212,21 +288,7 @@ namespace HoloToolkit.Unity.SpatialMapping
                 // We want the first update immediately.
                 updateTime = 0;
             }
-        }
-
-        public void UpdateObserver()
-        {
-            
-            var newObserver = new SurfaceObserver();
-            Vector3 sceneOrigin = Camera.main.transform.position;
-            newObserver.SetVolumeAsAxisAlignedBox(sceneOrigin, Extents);
-            CleanupObserver();
-            GC.Collect();
-            observer = newObserver;
-            ObserverState = ObserverStates.Running;
-            Debug.Log("UpdateObserver() new one starts");
-            // We want the first update immediately.
-            updateTime = 0;
+#endif
         }
 
         /// <summary>
@@ -235,6 +297,7 @@ namespace HoloToolkit.Unity.SpatialMapping
         /// <remarks>Sets the Surface Observer state to ObserverStates.Stopped.</remarks>
         public void StopObserving()
         {
+#if UNITY_EDITOR || UNITY_WSA
             if (ObserverState == ObserverStates.Running)
             {
                 Debug.Log("Stopping the observer.");
@@ -243,6 +306,7 @@ namespace HoloToolkit.Unity.SpatialMapping
                 surfaceWorkQueue.Clear();
                 updateTime = 0;
             }
+#endif
         }
 
         /// <summary>
@@ -250,6 +314,7 @@ namespace HoloToolkit.Unity.SpatialMapping
         /// </summary>
         public void CleanupObserver()
         {
+#if UNITY_EDITOR || UNITY_WSA
             StopObserving();
 
             if (observer != null)
@@ -271,42 +336,58 @@ namespace HoloToolkit.Unity.SpatialMapping
             }
 
             Cleanup();
-        }
-
-        internal void CleanupPartiallyAfterSend()
-        {
-            Debug.Log(System.String.Format("ADDED: {0}\t UPDATED: {1}\t REMOVED : {2} ", surfaceAddCount, surfaceUpdateCount, surfaceRemoveCount));
-            CleanupFarAfterSend();
-            surfaceAddCount = 0;
-            surfaceUpdateCount = 0;
-            surfaceRemoveCount = 0;
-        }
-
-        internal void CleanupAllAfterSend()
-        {
-            Debug.Log(System.String.Format("ADDED: {0}\t UPDATED: {1}\t REMOVED : {2} ", surfaceAddCount, surfaceUpdateCount, surfaceRemoveCount));
-            Cleanup();
-            surfaceAddCount = 0;
-            surfaceUpdateCount = 0;
-            surfaceRemoveCount = 0;
+#endif
         }
 
         /// <summary>
         /// Can be called to override the default origin for the observed volume.  Can only be called while observer has been started.
+        /// Kept for compatibility with Examples/SpatialUnderstanding
         /// </summary>
         public bool SetObserverOrigin(Vector3 origin)
         {
             bool originUpdated = false;
 
+#if UNITY_EDITOR || UNITY_WSA
             if (observer != null)
             {
-                observer.SetVolumeAsAxisAlignedBox(origin, Extents);
+                Origin = origin;
                 originUpdated = true;
             }
+#endif
 
             return originUpdated;
         }
 
+        /// <summary>
+        /// Change the observed volume according to ObserverVolumeType.
+        /// </summary>
+        private void SwitchObservedVolume()
+        {
+#if UNITY_EDITOR || UNITY_WSA
+            if (observer == null)
+            {
+              return;
+            }
+
+            switch (observerVolumeType)
+            {
+                case ObserverVolumeTypes.AxisAlignedBox:
+                    observer.SetVolumeAsAxisAlignedBox(origin, extents);
+                    break;
+                case ObserverVolumeTypes.OrientedBox:
+                    observer.SetVolumeAsOrientedBox(origin, extents, orientation);
+                    break;
+                case ObserverVolumeTypes.Sphere:
+                    observer.SetVolumeAsSphere(origin, extents.magnitude); //workaround
+                    break;
+                default:
+                    observer.SetVolumeAsAxisAlignedBox(origin, extents);
+                    break;
+            }
+#endif
+        }
+
+#if UNITY_EDITOR || UNITY_WSA
         /// <summary>
         /// Handles the SurfaceObserver's OnDataReady event.
         /// </summary>
@@ -315,7 +396,6 @@ namespace HoloToolkit.Unity.SpatialMapping
         /// <param name="elapsedCookTimeSeconds">Seconds between mesh cook request and propagation of this event.</param>
         private void SurfaceObserver_OnDataReady(SurfaceData cookedData, bool outputWritten, float elapsedCookTimeSeconds)
         {
-            Debug.Log("Data is ready");
             if (outstandingMeshRequest == null)
             {
                 Debug.LogErrorFormat("Got OnDataReady for surface {0} while no request was outstanding.",
@@ -359,7 +439,6 @@ namespace HoloToolkit.Unity.SpatialMapping
             }
 
             Debug.Assert(outstandingMeshRequest.Value.Object.activeSelf);
-            //Debug.Log(System.String.Format("SpatialMappingManager.Instance.DrawVisualMeshes == {0}", SpatialMappingManager.Instance.DrawVisualMeshes));
             outstandingMeshRequest.Value.Renderer.enabled = SpatialMappingManager.Instance.DrawVisualMeshes;
 
             SurfaceObject? replacedSurface = UpdateOrAddSurfaceObject(outstandingMeshRequest.Value, destroyGameObjectIfReplaced: false);
@@ -388,35 +467,17 @@ namespace HoloToolkit.Unity.SpatialMapping
 
             switch (changeType)
             {
-                /// Interestingly, surface is pushed to queue only when it's updated but not added.
-                
                 case SurfaceChange.Added:
-                    //Debug.Log(System.String.Format("SurfaceObserver_OnSurfaceChanged:    ADDED id: {0}", id));
-                    if (!isSurfaceObsolete(id))
-                    {
-                        surfaceAddCount += 1;
-                        surfaceWorkQueue.Enqueue(id);
-                    }
-                    break;
                 case SurfaceChange.Updated:
-                    //if (! isSurfaceObsolete(id) || SpatialMappingManager.Instance.isSurfaceNearCamera(bounds))
-                    //{
-                    //    //surfaceWorkQueue.Enqueue(id);
-                    //    //Debug.Log(System.String.Format("SurfaceObserver_OnSurfaceChanged:    UPDATED id: {0}", id));
-                    //    surfaceUpdateCount += 1;
-
-                    //}
-                    surfaceUpdateCount += 1;
+                    surfaceWorkQueue.Enqueue(id);
                     break;
 
                 case SurfaceChange.Removed:
-                    //Debug.Log(System.String.Format("SurfaceObserver_OnSurfaceChanged:    REMOVED id: {0}", id));
-                    surfaceRemoveCount += 1;
-                    //SurfaceObject? removedSurface = RemoveSurfaceIfFound(id.handle, destroyGameObject: false);
-                    //if (removedSurface != null)
-                    //{
-                    //    ReclaimSurface(removedSurface.Value);
-                    //}
+                    SurfaceObject? removedSurface = RemoveSurfaceIfFound(id.handle, destroyGameObject: false);
+                    if (removedSurface != null)
+                    {
+                        ReclaimSurface(removedSurface.Value);
+                    }
                     break;
 
                 default:
@@ -424,6 +485,14 @@ namespace HoloToolkit.Unity.SpatialMapping
                     break;
             }
         }
+        private bool IsMatchingSurface(SurfaceObject surfaceObject, SurfaceData surfaceData)
+        {
+            return (surfaceObject.ID == surfaceData.id.handle)
+                && (surfaceObject.Filter == surfaceData.outputMesh)
+                && (surfaceObject.Collider == surfaceData.outputCollider)
+                ;
+        }
+#endif
 
         /// <summary>
         /// Called when the GameObject is unloaded.
@@ -435,35 +504,19 @@ namespace HoloToolkit.Unity.SpatialMapping
 
         private void ReclaimSurface(SurfaceObject availableSurface)
         {
-            //if (spareSurfaceObject == null)
-            //{
-            //    CleanUpSurface(availableSurface, destroyGameObject: false);
+            if (spareSurfaceObject == null)
+            {
+                CleanUpSurface(availableSurface, destroyGameObject: false);
 
-            //    availableSurface.Object.name = "Unused Surface";
-            //    availableSurface.Object.SetActive(false);
+                availableSurface.Object.name = "Unused Surface";
+                availableSurface.Object.SetActive(false);
 
-            //    spareSurfaceObject = availableSurface;
-            //}
-            //else
-            //{
-            //    CleanUpSurface(availableSurface);
-            //}
-            CleanUpSurface(availableSurface);
+                spareSurfaceObject = availableSurface;
+            }
+            else
+            {
+                CleanUpSurface(availableSurface);
+            }
         }
-
-        private bool IsMatchingSurface(SurfaceObject surfaceObject, SurfaceData surfaceData)
-        {
-            return (surfaceObject.ID == surfaceData.id.handle)
-                && (surfaceObject.Filter == surfaceData.outputMesh)
-                && (surfaceObject.Collider == surfaceData.outputCollider)
-                ;
-        }
-
-        public bool isSurfaceObsolete(SurfaceId id)
-        {
-            return SpatialMappingManager.Instance.obsoleteSurfaceIds.Contains(id.handle);
-        }
-
-        
     }
 }

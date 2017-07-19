@@ -1,11 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.VR.WSA.WebCam;
-using System.Collections;
-using System;
-using System.Linq;
 using System.IO;
-using System.Collections.Generic;
-using UnityEngine.Windows.Speech;
 using RGBDCapturer;
 
 [ExecuteInEditMode]
@@ -48,6 +42,8 @@ public class DepthCaptureController : MonoBehaviour
         /// Prepare for depthbuffer capturing
         /// </summary>
         cam = GetComponent<Camera>();
+        //cam = Camera.current;
+        Debug.Log(cam.tag);
         tex = new RenderTexture(Camera.main.pixelWidth, Camera.main.pixelHeight, 32);
         //Debug.Log(string.Format("{0} x {1}", Camera.main.pixelWidth, Camera.main.pixelHeight));
         //tex = new RenderTexture(720, 504, 32);
